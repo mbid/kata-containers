@@ -282,6 +282,7 @@ fn create_extended_pipe(flags: OFlag, pipe_size: i32) -> Result<(RawFd, RawFd)> 
 mod tests {
     use super::*;
     use std::fs;
+    use std::os::fd::BorrowedFd;
 
     fn get_pipe_max_size() -> i32 {
         fs::read_to_string("/proc/sys/fs/pipe-max-size")
@@ -292,7 +293,11 @@ mod tests {
     }
 
     fn get_pipe_size(fd: RawFd) -> i32 {
-        fcntl(fd, FcntlArg::F_GETPIPE_SZ).unwrap()
+        fcntl(
+            unsafe { BorrowedFd::borrow_raw(fd) },
+            FcntlArg::F_GETPIPE_SZ,
+        )
+        .unwrap()
     }
 
     #[test]
